@@ -1989,10 +1989,148 @@ ListNode* LeetCode86_partition(ListNode* head, int x) {
 	bp->next = small->next;
 	return big->next;
 }
+ListNode* LeetCode92_reverseBetween(ListNode* head, int m, int n) {
+	if (m == n)return head;
+	ListNode* m_prev=NULL, *n_next;
+	ListNode* p, *pp, *ppp;
+	//如果不是从链表头开始处理
+	if (m != 1) {
+		m_prev = head;
+		for (int i = 1; i <= m - 2; i++)
+			m_prev = m_prev->next;
+		p = m_prev->next;
+	}
+	else
+		p = head;
+	pp = p->next;
+	ppp = pp->next;
+	//m到n一共n-m+1个数，需做n-m次
+	for (int i = 1; i <=n - m ; i++) {
+		pp->next = p;
+		p = pp;
+		pp = ppp;
+		if (ppp)
+			ppp = ppp->next;
+	}
+	n_next = pp;
+	//如果不是从链表头开始处理
+	if (m_prev) {
+		pp = m_prev->next;
+		m_prev->next = p;//p此时指向反转的最后一个
+	}
+	//否则
+	else{
+		pp = head;
+		head = p;}
+	pp->next = n_next;//用pp储存反转的第一个
+	return head;
+}
+vector<string> LeetCode93_restoreIpAddresses(string s) {
+	vector<string> ret;
+	int dot1 = 1, dot2 = 2, dot3 = 3;
+	//sb测试用例
+	if (s.length()<4 || s.length()>12)
+		return ret;
+	while(1){
+		//不能是数字序列开头为0（且不是单独一个0）
+		if(!(dot1>0+1 && s[0]=='0' ||
+			dot2>dot1 + 1 && s[dot1] == '0' || 
+			dot3>dot2 + 1 && s[dot2] == '0' || 
+			s.length()>dot3 + 1 && s[dot3] == '0')){
+			//在dot位置插入点，并转换为整数
+			int num1 = atoi(s.substr(0, dot1).c_str());
+			int num2 = atoi(s.substr(dot1, dot2-dot1).c_str());
+			int num3 = atoi(s.substr(dot2, dot3 - dot2).c_str());
+			int num4 = atoi(s.substr(dot3, s.length()- dot3).c_str());
+			if (num1 >= 0 && num1 <= 255 &&
+				num2 >= 0 && num2 <= 255 &&
+				num3 >= 0 && num3 <= 255 &&
+				num4 >= 0 && num4 <= 255 ){
+				string t = s;
+				t.insert(dot3,".");
+				t.insert(dot2, ".");
+				t.insert(dot1, ".");
+				ret.push_back(t);
+			}}
+		//生成下一个dot序列
+		if (dot3 < s.length() - 1)
+			dot3++;
+		else if (dot2 < s.length() - 2) {
+			dot2++;
+			dot3 = dot2 + 1;
+		}
+		else if (dot1 < s.length() - 3) {
+			dot1++;
+			dot2 = dot1 + 1;
+			dot3 = dot2 + 1;
+		}
+		else
+			break;
+		int c = 1;
+	}
+	return ret;
+}
+void LeetCode94_inorderTraversal(TreeNode* p,vector<int>& ret) {
+	if (!p)
+		return;
+	if (p->left)
+		LeetCode94_inorderTraversal(p->left,ret);
+	ret.push_back(p->val);
+	if (p->right)
+		LeetCode94_inorderTraversal(p->right,ret);
+}
+vector<int> LeetCode94_inorderTraversal(TreeNode* root) {
+	vector<int> ret;
+	LeetCode94_inorderTraversal(root, ret);
+	return ret;
+}
+int LeetCode96_numTrees(int n) {
+	vector<int> BSTs(n+1, 0);
+	BSTs[0] = 1;
+	BSTs[1] = 1;
+	for (int i = 2; i <= n; i++) {
+		int count = 0;
+		for (int j = 1; j <= i; j++)
+			count += BSTs[j - 1] * BSTs[i-j];
+		BSTs[i] = count;
+	}
+	return BSTs[n];
+}
+TreeNode* LeetCode95_CloneAndChangeNumber(TreeNode* p, int start) {
+	if (!p)
+		return NULL;
+	TreeNode* t = new TreeNode(p->val-1+start);
+	t->left = LeetCode95_CloneAndChangeNumber(p->left, start);
+	t->right= LeetCode95_CloneAndChangeNumber(p->right, start);
+	return t;
+}
+vector<TreeNode*> LeetCode95_generateTrees(int n) {
+	vector<vector<TreeNode*>> BSTs;
+	vector<TreeNode*> tmp;
+	//构造0和1的情况
+	tmp.push_back(NULL);
+	BSTs.push_back(tmp);
+	tmp.clear();
+	tmp.push_back(new TreeNode(1));
+	BSTs.push_back(tmp);
+	//逐一构造2到n的情况
+	for (int i = 2; i <= n; i++) {
+		tmp.clear();
+		//对应每个i，要将BSTs[j-1]和BSTs[i-j]的树逐一相乘
+		for (int j = 1; j <= i; j++) {
+			for (int k = 0; k < BSTs[j-1].size(); k++) {
+				for (int l = 0; l < BSTs[i-j].size(); l++){
+					TreeNode* h = new TreeNode(j);
+					h->left = LeetCode95_CloneAndChangeNumber(BSTs[j - 1][k],1);
+					h->right= LeetCode95_CloneAndChangeNumber(BSTs[i - j][l], j+1);
+					tmp.push_back(h);
+				}}}	
+		BSTs.push_back(tmp);
+	}
+	BSTs[0].clear();
+	return BSTs[n];
+}
 int main() {
-	vector<int> arr = {1,4,3,2,5,2};
-	ListNode* h = MakeList(arr);
-	auto t = LeetCode86_partition(h, 3);
-	OutPutList(t);
+	vector<TreeNode*> t = LeetCode95_generateTrees(0);
 	int b = 1;
 }
