@@ -2130,7 +2130,93 @@ vector<TreeNode*> LeetCode95_generateTrees(int n) {
 	BSTs[0].clear();
 	return BSTs[n];
 }
+bool LeetCode100_isSameTree(TreeNode* p, TreeNode* q) {
+	if (p && q && p->val == q->val)
+		return LeetCode100_isSameTree(p->left, q->left) && LeetCode100_isSameTree(p->right, q->right);
+	else if (!p && !q)
+		return true;
+	else
+		return false;
+}
+int LeetCode98_minofBST(TreeNode* root) {
+	while (root->left)
+		root = root->left;
+	return root->val;
+}
+int LeetCode98_maxofBST(TreeNode* root) {
+	while (root->right)
+		root = root->right;
+	return root->val;
+}
+bool LeetCode98_isValidBST(TreeNode* root) {
+	if (!root)
+		return true;
+	if (root->left)
+		if (root->left->val >= root->val || !LeetCode98_isValidBST(root->left) || LeetCode98_maxofBST(root->left) >= root->val)
+			return false;
+	if (root->right)
+		if (root->right->val <= root->val || !LeetCode98_isValidBST(root->right) || LeetCode98_minofBST(root->right) <= root->val)
+			return false;
+	return true;
+}
+bool LeetCode97_isInterleave(string s1, string s2, string s3) {
+	string t2;
+	int j = 0;
+	for (int i = 0; i < s3.length(); i++) {
+		if (j >= s1.length()) {
+			t2 += s3.substr(i, s3.length() - i);
+			break;
+		}
+		if (s1[j] == s3[i]) {
+			j++;
+		}
+		else {
+			t2 += s3[i];
+		}
+	}
+	if (j < s1.length() || t2 != s2)
+		return false;
+	else
+		return true;
+}
+TreeNode* LeetCode101_flip(TreeNode* root) {
+	if (!root)return nullptr;
+	TreeNode* r = new TreeNode(root->val);
+	if (root->right)
+		r->left = LeetCode101_flip(root->right);
+	if (root->left)
+		r->right= LeetCode101_flip(root->left);
+	return r;
+}
+bool LeetCode101_isSymmetric(TreeNode* root) {
+	TreeNode* r = LeetCode101_flip(root);
+	return LeetCode100_isSameTree(r, root);
+}
+void LeetCode102_dfs(TreeNode*p,int lv, vector<vector<int>>& ret) {
+	if (!p)return;
+	if (lv >= ret.size())
+		ret.resize(ret.size() + 1);
+	ret[lv].push_back(p->val);
+	LeetCode102_dfs(p->left, lv + 1, ret);
+	LeetCode102_dfs(p->right, lv + 1, ret);
+}
+vector<vector<int>> LeetCode102_levelOrder(TreeNode* root) {
+	vector<vector<int>>ret;
+	LeetCode102_dfs(root, 0, ret);
+	return ret;
+}
+vector<vector<int>> LeetCode103_zigzagLevelOrder(TreeNode* root) {
+	vector<vector<int>>ret;
+	LeetCode102_dfs(root, 0, ret);
+	for (int i = 1; i < ret.size(); i += 2)
+		reverse(ret[i].begin(), ret[i].end());
+	return ret;
+}
+int LeetCode104_maxDepth(TreeNode* root) {
+	if (!root)return 0;
+	return max(LeetCode104_maxDepth(root->left), LeetCode104_maxDepth(root->right)) + 1;
+}
 int main() {
-	vector<TreeNode*> t = LeetCode95_generateTrees(0);
+	auto t = LeetCode97_isInterleave("aabcc", "dbbca", "aadbbcbcac");
 	int b = 1;
 }
