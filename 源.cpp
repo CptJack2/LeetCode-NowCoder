@@ -2216,7 +2216,114 @@ int LeetCode104_maxDepth(TreeNode* root) {
 	if (!root)return 0;
 	return max(LeetCode104_maxDepth(root->left), LeetCode104_maxDepth(root->right)) + 1;
 }
+TreeNode* LeetCode105_buildTree(const vector<int>& preorder, const vector<int>& inorder) {
+	if (preorder.empty() || inorder.empty())
+		return nullptr;
+	TreeNode* h = new TreeNode(preorder[0]);
+	int h_index = find(inorder.begin(), inorder.end(), preorder[0])-inorder.begin();
+	if(h_index + 1<=preorder.size())
+		h->left = LeetCode105_buildTree(vector<int>(preorder.begin() + 1, preorder.begin() +h_index+1),
+			vector<int>(inorder.begin(), inorder.begin()+h_index)); 
+	if (h_index+1<preorder.size())
+		h->right = LeetCode105_buildTree(vector<int>(preorder.begin() +h_index + 1, preorder.end()),
+				vector<int>(inorder.begin() + h_index+1, inorder.end()));
+	return h;
+}
+TreeNode* LeetCode106_buildTree(const vector<int>& inorder, const vector<int>& postorder) {
+	if (postorder.empty() || inorder.empty())
+		return nullptr;
+	TreeNode* h = new TreeNode(postorder.back());
+	int h_index = find(inorder.begin(), inorder.end(), postorder.back()) - inorder.begin();
+	if (h_index <= postorder.size())
+		h->left = LeetCode106_buildTree(vector<int>(inorder.begin(), inorder.begin() + h_index),
+			vector<int>(postorder.begin(), postorder.begin() + h_index));
+	if (h_index + 1<postorder.size())
+		h->right = LeetCode106_buildTree(vector<int>(inorder.begin() + h_index + 1, inorder.end()),
+			vector<int>(postorder.begin() + h_index, postorder.end() - 1));
+	return h;
+}
+vector<vector<int>> LeetCode107_levelOrderBottom(TreeNode* root) {
+	vector<vector<int>>ret;
+	LeetCode102_dfs(root, 0, ret);
+	reverse(ret.begin(), ret.end());
+	return ret;
+}
+TreeNode* LeetCode108_sortedArrayToBST(const vector<int>& nums) {
+	if (nums.empty())
+		return nullptr;
+	int mid = (nums.size() - 1) / 2;
+	TreeNode* h = new TreeNode(nums[mid]);
+	h->left = LeetCode108_sortedArrayToBST(vector<int>(nums.begin(), nums.begin() + mid));
+	h->right = LeetCode108_sortedArrayToBST(vector<int>(nums.begin()+mid+1, nums.end()));
+	return h;
+}
+TreeNode* LeetCode109_sortedListToBST(ListNode* head) {
+	vector<int> nums;
+	while (head) {
+		nums.push_back(head->val);
+		head = head->next;
+	}
+	return LeetCode108_sortedArrayToBST(nums);
+}
+bool LeetCode110_isBalanced(TreeNode* root) {
+	if (!root)
+		return true;
+	if (abs(LeetCode104_maxDepth(root->left) - LeetCode104_maxDepth(root->right)) > 1)
+		return false;
+	return LeetCode110_isBalanced(root->left) && LeetCode110_isBalanced(root->right);
+}
+int LeetCode111_recursive(TreeNode* root) {
+	if (!root)
+		return INT_MAX;
+	if (!root->right && !root->left)
+		return 1;
+	return min(LeetCode111_recursive(root->left), LeetCode111_recursive(root->right)) + 1;
+}
+int LeetCode111_minDepth(TreeNode* root) {
+	if (!root)
+		return 0;
+	else
+		return LeetCode111_recursive(root);
+}
+bool LeetCode112_recursive(TreeNode* root, int sum) {
+	//р╤вс╫з╣Ц
+	if (!root -> left && !root->right) {
+		if (sum == root->val)
+			return true;
+		else
+			return false;
+	}
+	else {
+		bool t1 = false, t2 = false;
+		if (root->left)
+			t1 = LeetCode112_recursive(root->left, sum - root->val);
+		if (root->right)
+			t2 = LeetCode112_recursive(root->right, sum - root->val);
+		return t1 || t2;
+	}
+}
+bool LeetCode112_hasPathSum(TreeNode* root, int sum) {
+	if (!root)
+		return false;
+	else
+		return LeetCode112_recursive(root, sum);
+}
+TreeNode* MakeTree(vector<int> arr) {
+	vector<TreeNode*> p;
+	for (int i = 0; i < arr.size(); i++) {
+		p.push_back(new TreeNode(arr[i]));
+		if (arr[i] != NULL && i!=0) {
+			if (i % 2 == 0)
+				p[(i - 1) / 2]->right = p[i];
+			else
+				p[(i - 1) / 2]->left = p[i];
+		}
+	}
+	return p[0];
+}
 int main() {
-	auto t = LeetCode97_isInterleave("aabcc", "dbbca", "aadbbcbcac");
+	vector<int> arr = { 1,-2,-3,1,3,-2,NULL,-1 };
+	TreeNode* h = MakeTree(arr);
+	auto t = LeetCode112_hasPathSum(h,-1);
 	int b = 1;
 }
