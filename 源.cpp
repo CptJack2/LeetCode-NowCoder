@@ -2321,9 +2321,249 @@ TreeNode* MakeTree(vector<int> arr) {
 	}
 	return p[0];
 }
+void LeetCode113_recursive(TreeNode* root, int sum, vector<int>&path,vector<vector<int>> &ret) {
+	path.push_back(root->val);
+	//叶子节点
+	if (!root->left && !root->right) {
+		if (sum == root->val)
+			ret.push_back(path);
+	}
+	else {
+		if (root->left)
+			LeetCode113_recursive(root->left, sum - root->val,path,ret);
+		if (root->right)
+			LeetCode113_recursive(root->right, sum - root->val,path,ret);
+	}
+	path.pop_back();
+}
+vector<vector<int>> LeetCode113_pathSum(TreeNode* root, int sum) {
+	vector<vector<int>> ret;
+	if (!root)
+		return ret;
+	else{
+		vector<int> tmp;
+		LeetCode113_recursive(root, sum,tmp,ret);}
+	return ret;
+}
+void LeetCode114_dfs(TreeNode* root,vector<TreeNode*> &q) {
+	q.push_back(root);
+	if (!root->left && !root->right) {
+		return;
+	}
+	else {
+		if (root->left)
+			LeetCode114_dfs(root->left,q);
+		if (root->right)
+			LeetCode114_dfs(root->right,q);
+	}
+}
+void LeetCode114_flatten(TreeNode* root) {
+	vector<TreeNode*> q;
+	if (!root)return;
+	LeetCode114_dfs(root, q);
+	int t = q.size() - 2;
+	for (int i = 0; i <= t; i++){
+		q[i]->left= NULL;
+		q[i]->right = q[i + 1];}
+	q[q.size() - 1]->left= NULL;
+	q[q.size() - 1]->right = NULL;
+}
+void LeetCode257_recursive(TreeNode* root, vector<int>&path, vector<vector<int>> &ret) {
+	path.push_back(root->val);
+	//叶子节点
+	if (!root->left && !root->right) {
+			ret.push_back(path);
+	}
+	else {
+		if (root->left)
+			LeetCode257_recursive(root->left, path, ret);
+		if (root->right)
+			LeetCode257_recursive(root->right, path, ret);
+	}
+	path.pop_back();
+}
+vector<string> LeetCode257_binaryTreePaths(TreeNode* root) {
+	vector<vector<int>> ret;
+	vector<string> r;
+	if (!root)
+		return r;
+	else {
+		vector<int> tmp;
+		LeetCode257_recursive(root,tmp, ret);
+		for (int i = 0; i < ret.size(); i++) {
+			string t = to_string(ret[i][0]);
+			for (int j = 1; j < ret[i].size(); j++) 
+				t += "->" + to_string(ret[i][j]);
+			r.push_back(t);
+		}
+	}
+	return r;
+}
+bool LeetCode141_hasCycle(ListNode *head) {
+	if (!head)return false;
+	ListNode* f=head, *s=head;
+	while (1) {
+		f = f->next;
+		if (f)
+			f = f->next;
+		s = s->next;
+		if (f&& s) {
+			if (s == f)
+				return true;
+		}
+		else
+			break;
+	}
+	return false;
+}
+ListNode *LeetCode142_detectCycle(ListNode *head) {
+	if (!head)return NULL;
+	ListNode* f = head, *s = head;
+	while (1) {
+		f = f->next;
+		if (f)
+			f = f->next;
+		s = s->next;
+		if (f&& s) {
+			if (s == f)
+				break;
+		}
+		else
+			return NULL;
+	}
+	f = head;
+	while (s != f) {
+		s = s->next;
+		f = f->next;
+	}
+	return s;
+}
+vector<int> LeetCode144_preorderTraversal(TreeNode* root) {
+	vector<int> ret;
+	if (!root)
+		return ret;
+	stack<TreeNode*>  st;
+	st.push(root);
+	while (!st.empty()) {
+		TreeNode* t = st.top();
+		ret.push_back(t->val);
+		st.pop();
+		if (t->right)
+			st.push(t->right);
+		if (t->left)
+			st.push(t->left);
+	}
+	return ret;
+}
+vector<int> LeetCode145_postorderTraversal(TreeNode* root) {
+	vector<int> ret;
+	if (!root)
+		return ret;
+	stack<TreeNode*>  st;
+	TreeNode* curr=root;
+	while (!st.empty() || curr) {
+		if (curr) {
+			ret.push_back(curr->val);
+			st.push(curr->left);
+			curr = curr->right;
+		}
+		else{
+			curr = st.top();
+			st.pop();}
+	}
+	reverse(ret.begin(), ret.end());
+	return ret;
+}
+vector<int> preorderTraversal_iteration(TreeNode* root) {
+	vector<int> ret;
+	if (!root)
+		return ret;
+	stack<TreeNode*>  st;
+	TreeNode* curr = root;
+	while (!st.empty() || curr) {
+		if (curr) {
+			ret.push_back(curr->val);
+			st.push(curr->right);
+			curr = curr->left;
+		}
+		else {
+			curr = st.top();
+			st.pop();
+		}
+	}
+	return ret;
+}
+vector<int> inorderTraversal_iteration(TreeNode* root) {
+	vector<int> ret;
+	if (!root)
+		return ret;
+	stack<TreeNode*>  st;
+	TreeNode* curr = root;
+	while (!st.empty() || curr) {
+		if (curr) {
+			st.push(curr);
+			curr = curr->left;
+		}
+		else {
+			curr = st.top();
+			st.pop();
+			ret.push_back(curr->val);
+			curr = curr->right;
+		}
+	}
+	return ret;
+}
+ListNode* LeetCode206_reverseList(ListNode* head) {
+	ListNode* p=head, *pp, *ppp=NULL;
+	if (!p)
+		return NULL;
+	pp = p->next;
+	if (pp)
+		ppp = pp->next;
+	while (pp) {
+		//ppp = pp->next;
+		pp->next = p;
+		p = pp;
+		pp = ppp;
+		if(ppp)
+			ppp = ppp->next;
+	}
+	head->next = NULL;
+	return p;
+}
+void LeetCode143_reorderList(ListNode* head) {
+	if (!head)return;
+	int n = 0;
+	ListNode* p = head;
+	while (p) {
+		n++;
+		p = p->next;
+	}
+	p = head;
+	for (int i = 0; i < n / 2; i++)
+		p = p->next;
+	ListNode* h2 = p->next;
+	p->next = NULL;
+	h2=LeetCode206_reverseList(h2);
+	if (!h2)return;
+	p = head;
+	while (1) {
+		ListNode* t = p->next;
+		p->next = h2;
+		p = t;
+		t = h2->next;
+		h2->next = p;
+		if (t)h2 = t;
+		else
+			break;
+	}
+	if (p)
+		h2->next = p;
+}
 int main() {
-	vector<int> arr = { 1,-2,-3,1,3,-2,NULL,-1 };
-	TreeNode* h = MakeTree(arr);
-	auto t = LeetCode112_hasPathSum(h,-1);
+	vector<int> arr = { 1,2,3,4 };
+	ListNode* h = MakeList(arr);
+	LeetCode143_reorderList(h);
+	OutPutList(h);
 	int b = 1;
 }
