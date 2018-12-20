@@ -2612,8 +2612,162 @@ int LeetCode85_maximalRectangle_2(vector<vector<char> > &matrix) {
 	}
 	return ans;
 }
+vector<string> LeetCode68_fullJustify(vector<string>& words, int maxWidth) {
+	vector<string> ret;
+	int i = 0,j=1;
+	int len;
+	while(i<words.size()){
+		len = words[i].size();
+		//决定一行，使用词i到j
+		while (j<words.size() && len + 1 + words[j].length() <= maxWidth){
+			len += words[j].length()+1;
+			words[j-1] = words[j-1] + ' ';
+			j++;
+		}
+		//到了最后一行
+		if (j >=words.size())
+			break;
+		//补全空格
+		int ii = i;
+		for (int k = len; k < maxWidth; k++) {
+			words[ii] = words[ii]+ ' ' ;
+			++ii;
+			if (ii >= j-1)
+				ii = i;
+		}
+		//写出一行
+		string t;
+		for (int k = i; k <j; k++) {
+			t += words[k];
+		}
+		ret.push_back(t);
+		i = j++;
+	}
+	//处理最后一行，左对齐
+	string t;
+	for (int k = i; k <j; k++) {
+		t += words[k];
+	}
+	for (int k = len; k < maxWidth; k++) {
+		t += ' ';
+	}
+	ret.push_back(t);
+	return ret;
+}
+vector<char> LeetCode37_ready(int i, int j,vector<vector<char>>& board) {
+	vector<bool> b(10,true);
+	b[0] = false;
+	for (int k = 0; k < 9; k++) {
+		if(board[i][k] !='.')
+			b[board[i][k] - '0'] = false;
+		if (board[k][j] != '.')
+			b[board[k][j] - '0'] = false;
+	}
+	for (int k = 0; k < 3; k++)
+		for (int l = 0; l < 3; l++) 
+			if(board[i / 3 * 3 + k][j / 3 * 3 + l]!='.')
+				b[board[i / 3 * 3 + k][j / 3 * 3 + l] - '0'] = false;
+	vector<char> ret;
+	for (int k = 1; k <= 9; k++)
+		if (b[k])
+			ret.push_back(k + '0');
+	return ret;
+}
+bool LeetCode37_track(int n,vector<vector<char>>& board) {
+	if (n == 81)
+		return true;
+	int i = n / 9, j = n % 9;
+	if (board[i][j] != '.')
+		return LeetCode37_track(n + 1,board);
+	vector<char> r = LeetCode37_ready(i, j, board);
+	for (char c : r) {
+		board[i][j] = c;
+		if (LeetCode37_track(n + 1, board))
+			return true;
+	}
+	board[i][j] = '.';
+	return false;
+}
+void LeetCode37_solveSudoku(vector<vector<char>>& board) {
+	LeetCode37_track(0, board);
+}
+bool LeetCode79_recursive(int i,int j,vector<vector<char>>& board, string word, vector<vector<bool>> &mask) {
+	if (word.empty())
+		return true;
+	if (i > 0 && mask[i - 1][j] && board[i - 1][j] == word[0]){
+		mask[i - 1][j] = false;
+		bool t=LeetCode79_recursive(i - 1, j, board, word.substr(1, word.length() - 1), mask);
+		if (t)
+			return true;
+		else
+			mask[i - 1][j] = true;
+	}
+	if (i < board.size()-1 && mask[i + 1][j] && board[i + 1][j] == word[0]) {
+		mask[i+1][j] = false;
+		bool t=LeetCode79_recursive(i + 1, j, board, word.substr(1, word.length() - 1), mask);
+		if (t)
+			return true;
+		else
+			mask[i + 1][j] = true;
+	}
+	if (j > 0 && mask[i ][j-1] && board[i ][j-1] == word[0]) {
+		mask[i ][j-1] = false;
+		bool t= LeetCode79_recursive(i ,j-1, board, word.substr(1, word.length() - 1), mask);
+		if (t)
+			return true;
+		else
+			mask[i][j - 1] = true;
+	}
+	if (j < board[0].size() - 1 && mask[i ][j+1] && board[i ][j+1] == word[0]) {
+		mask[i ][j+1] = false;
+		bool t= LeetCode79_recursive(i , j + 1, board, word.substr(1, word.length() - 1), mask);
+		if (t)
+			return true;
+		else
+			mask[i][j + 1] = true;
+	}
+	return false;
+}
+bool LeetCode79_exist(vector<vector<char>>& board, string word) {
+	int m = board.size(), n = board[0].size();
+	vector<vector<bool>> mask(m, vector<bool>(n, true));
+	for (int i = 0; i < m; i++) {
+		for (int j = 0; j < n; j++) {
+			if (board[i][j] == word[0]) {
+				mask[i][j] = false;
+				if(LeetCode79_recursive(i, j , board, word.substr(1, word.length() - 1), mask))
+					return true;
+				else 
+					mask[i][j] = true;
+			}}}
+	return false;
+}
+void LeetCode90_dfs(int cur, int lv, vector<int>& arr, vector<int>& nums, set<vector<int>>& ret) {
+	if (lv == 1) {
+		ret.insert(arr);
+		//arr.pop_back();
+		return;
+	}
+	for (int i = cur + 1; i < nums.size(); i++) {
+		arr.push_back(nums[i]);
+		LeetCode90_dfs(i, lv - 1, arr, nums, ret);
+		arr.pop_back();
+	}
+}
+vector<vector<int>> LeetCode90_subsetsWithDup(vector<int>& nums) {
+	vector<vector<int>> ret;
+	set<vector<int>> set;
+	vector<int> arr;
+	ret.push_back(arr);
+	sort(nums.begin(), nums.end());
+	for (int i = 1; i <= nums.size(); i++)
+		LeetCode90_dfs(-1, i + 1, arr, nums, set);
+	for (auto i = set.begin(); i != set.end(); i++)
+		ret.push_back(*i);
+	return ret;
+}
 int main() {
-	vector<vector<char>> arr = {{'1','0','1','0','0'},{'1','0','1','1','1'},{'1','1','1','1','1'},{'1','0','0','1','0'}} ;
-	int t = LeetCode85_maximalRectangle_2(arr);
+	vector<int> arr = { 1,2,2 };
+	auto t = LeetCode90_subsetsWithDup(arr);
 	int b = 1;
 }
