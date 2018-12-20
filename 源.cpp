@@ -1932,12 +1932,16 @@ int LeetCode84_largestRectangleArea(vector<int>& heights) {
 
 	int i = 0;
 	while (i < heights.size() || !stack.empty()) {
+		//一路将递增序列推入栈。
 		if (stack.empty() || (i < heights.size() && heights[i] >= heights[stack.top()])) {
 			stack.push(i++);
 		}
 		else {
+			//出栈
 			int top = stack.top();
 			stack.pop();
+			//出栈后，栈顶元素实际是上一个比它矮的元素
+			//这时，[stack.top()+1,i-1]是以heights[top]为高能延展的最大区间
 			int width = (stack.empty()) ? i : i - 1 - stack.top();
 			int area = width * heights[top];
 
@@ -2563,10 +2567,53 @@ void LeetCode143_reorderList(ListNode* head) {
 	if (p)
 		h2->next = p;
 }
+int LeetCode85_maximalRectangle_1(vector<vector<char> > &matrix) {
+	//分行处理，每行用height[i]记载可达高，left[i]表示可向左延伸最远,right[i]表示可向右延伸最远+1
+	//最后用max(height[i]*(right[i]-left[i]))得出这一行处理的最大数据
+	if (matrix.empty()) return 0;
+	const int m = matrix.size();
+	const int n = matrix[0].size();
+	vector<int> left(n,0), right(n,n), height(n,0);
+	int maxA = 0;
+	for (int i = 0; i<m; i++) {
+		int cur_left = 0, cur_right = n;
+		for (int j = 0; j<n; j++) { // compute height (can do this from either side)
+			if (matrix[i][j] == '1') height[j]++;
+			else height[j] = 0;
+		}
+		//此时left中存储的是上一行计算的信息
+		for (int j = 0; j<n; j++) { // compute left (from left to right)
+			if (matrix[i][j] == '1') left[j] = max(left[j], cur_left);
+			else { left[j] = 0; cur_left = j + 1; }
+		}
+		// compute right (from right to left)
+		for (int j = n - 1; j >= 0; j--) {
+			if (matrix[i][j] == '1') right[j] = min(right[j], cur_right);
+			else { right[j] = n; cur_right = j; }
+		}
+		// compute the area of rectangle (can do this from either side)
+		for (int j = 0; j<n; j++)
+			maxA = max(maxA, (right[j] - left[j])*height[j]);
+	}
+	return maxA;
+}
+int LeetCode85_maximalRectangle_2(vector<vector<char> > &matrix) {
+	if (matrix.empty() || matrix[0].empty())
+		return 0;
+	int n = matrix[0].size();
+	vector<int>height(n, 0);
+	vector<int> st;
+	int ans = 0;
+	for (int i = 0; i < matrix.size(); i++) {
+		for (int j = 0; j < n; j++)
+			height[j] = matrix[i][j] == '1' ? ++height[j] : 0;
+		int t = LeetCode84_largestRectangleArea(height);
+		ans = max(t, ans);
+	}
+	return ans;
+}
 int main() {
-	vector<int> arr = { 1,2,3,4 };
-	ListNode* h = MakeList(arr);
-	LeetCode143_reorderList(h);
-	OutPutList(h);
+	vector<vector<char>> arr = {{'1','0','1','0','0'},{'1','0','1','1','1'},{'1','1','1','1','1'},{'1','0','0','1','0'}} ;
+	int t = LeetCode85_maximalRectangle_2(arr);
 	int b = 1;
 }
