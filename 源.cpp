@@ -2766,8 +2766,57 @@ vector<vector<int>> LeetCode90_subsetsWithDup(vector<int>& nums) {
 		ret.push_back(*i);
 	return ret;
 }
+bool LeetCode76_isdesirable(multiset<char> set, vector<int> &pos,string& s,int left,int right) {
+	for (int i = left; i <= right; ++i) {
+		if (set.find(s[pos[i]]) != set.end())
+			set.erase(set.lower_bound(s[pos[i]]));
+	}
+	if (set.empty())
+		return true;
+	else
+		return false;
+}
+string LeetCode76_minWindow(string s, string t) {
+	multiset<char> set;
+	for (char c : t)
+		set.insert(c);
+	int left = 0, right = 0;
+	int minl = -1, minr = -1;
+	int min1= INT_MAX;
+	vector<int> pos;
+	for (int i = 0; i < s.length(); i++)
+		if (set.find(s[i]) != set.end())
+			pos.push_back(i);
+	if (set.empty())
+		return "";
+	if (pos.empty())
+		return "";
+	while (right <pos.size()) {
+		while (right <pos.size() && !LeetCode76_isdesirable(set, pos, s, left, right))
+			++right;
+		if (right >= pos.size())
+			break;
+		if (min1 > pos[right] - pos[left] + 1) {
+			min1 = pos[right] - pos[left] + 1;
+			minl = left;
+			minr = right;
+		}
+		while (left+1<=right && LeetCode76_isdesirable(set, pos, s, left + 1, right)) 
+			++left;
+		if (min1 > pos[right] - pos[left] + 1) {
+			min1 = pos[right] - pos[left] + 1;
+			minl = left;
+			minr = right;
+		}
+		++left;
+	}
+	if (minl != -1 && minr != -1)
+		return s.substr(pos[minl], pos[minr] - pos[minl] + 1);
+	else
+		return "";
+}
 int main() {
 	vector<int> arr = { 1,2,2 };
-	auto t = LeetCode90_subsetsWithDup(arr);
+	auto t = LeetCode76_minWindow("a", "aa");
 	int b = 1;
 }
