@@ -2766,7 +2766,60 @@ vector<vector<int>> LeetCode90_subsetsWithDup(vector<int>& nums) {
 		ret.push_back(*i);
 	return ret;
 }
-bool LeetCode76_isdesirable(multiset<char> set, vector<int> &pos,string& s,int left,int right) {
+bool LeetCode76_isdesirable_2(string& t, vector<int> &pos,string& s,int left,int right) {
+	vector<bool>flag(t.size(), false);
+	for (int i = left; i <= right; ++i) {
+		if (binary_search(t.begin(),t.end(),s[pos[i]]))
+			for(auto j=lower_bound(t.begin(),t.end(),s[pos[i]]);j!=upper_bound(t.begin(), t.end(), s[pos[i]]);j++)
+				if (!flag[j - t.begin()]) {
+					flag[j - t.begin()] = true;
+					break;
+				}
+	}
+	for (int i = 0; i < flag.size(); i++)
+		if (!flag[i])
+			return false;
+	return true;
+}
+string LeetCode76_minWindow_2(string s, string t) {
+	if (t.empty())
+		return"";
+	sort(t.begin(), t.end());
+	int left = 0, right = 0;
+	int minl = -1, minr = -1;
+	int min1= INT_MAX;
+	vector<int> pos;
+	for (int i = 0; i < s.length(); i++)
+		if (binary_search(t.begin(),t.end(),s[i]))
+			pos.push_back(i);
+	if (pos.empty())
+		return "";
+	while (right <pos.size()) {
+		while (right <pos.size() && !LeetCode76_isdesirable_2(t, pos, s, left, right))
+			++right;
+		if (right >= pos.size())
+			break;
+		if (min1 > pos[right] - pos[left] + 1) {
+			min1 = pos[right] - pos[left] + 1;
+			minl = left;
+			minr = right;
+		}
+		while (left+1<=right && LeetCode76_isdesirable_2(t, pos, s, left + 1, right)) 
+			++left;
+		if (min1 > pos[right] - pos[left] + 1) {
+			min1 = pos[right] - pos[left] + 1;
+			minl = left;
+			minr = right;
+		}
+		++left;
+	}
+	if (minl != -1 && minr != -1)
+		return s.substr(pos[minl], pos[minr] - pos[minl] + 1);
+	else
+		return "";
+}
+
+bool LeetCode76_isdesirable(multiset<char> set, vector<int> &pos, string& s, int left, int right) {
 	for (int i = left; i <= right; ++i) {
 		if (set.find(s[pos[i]]) != set.end())
 			set.erase(set.lower_bound(s[pos[i]]));
@@ -2782,7 +2835,7 @@ string LeetCode76_minWindow(string s, string t) {
 		set.insert(c);
 	int left = 0, right = 0;
 	int minl = -1, minr = -1;
-	int min1= INT_MAX;
+	int min1 = INT_MAX;
 	vector<int> pos;
 	for (int i = 0; i < s.length(); i++)
 		if (set.find(s[i]) != set.end())
@@ -2791,8 +2844,8 @@ string LeetCode76_minWindow(string s, string t) {
 		return "";
 	if (pos.empty())
 		return "";
-	while (right <pos.size()) {
-		while (right <pos.size() && !LeetCode76_isdesirable(set, pos, s, left, right))
+	while (right < pos.size()) {
+		while (right < pos.size() && !LeetCode76_isdesirable(set, pos, s, left, right))
 			++right;
 		if (right >= pos.size())
 			break;
@@ -2801,7 +2854,7 @@ string LeetCode76_minWindow(string s, string t) {
 			minl = left;
 			minr = right;
 		}
-		while (left+1<=right && LeetCode76_isdesirable(set, pos, s, left + 1, right)) 
+		while (left + 1 <= right && LeetCode76_isdesirable(set, pos, s, left + 1, right))
 			++left;
 		if (min1 > pos[right] - pos[left] + 1) {
 			min1 = pos[right] - pos[left] + 1;
@@ -2817,6 +2870,7 @@ string LeetCode76_minWindow(string s, string t) {
 }
 int main() {
 	vector<int> arr = { 1,2,2 };
-	auto t = LeetCode76_minWindow("a", "aa");
+	auto t = LeetCode76_minWindow("ADOBECODEBANC",
+		"ABC");
 	int b = 1;
 }
