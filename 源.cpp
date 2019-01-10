@@ -9,6 +9,7 @@ using namespace std;
 #include<string>
 #include<iterator>
 #include<list>
+#include<unordered_map>
 
 struct TreeNode {
 	int val;
@@ -2867,6 +2868,34 @@ string LeetCode76_minWindow(string s, string t) {
 		return s.substr(pos[minl], pos[minr] - pos[minl] + 1);
 	else
 		return "";
+}
+string LeetCode76_minWindow_fromweb(string S, string T) {
+	if (T.size() > S.size()) return "";
+	string res = "";
+	int left = 0, count = 0, minLen = S.size() + 1;
+	unordered_map<char, int> m;
+	for (int i = 0; i < T.size(); ++i) {
+		if (m.find(T[i]) != m.end()) ++m[T[i]];
+		else m[T[i]] = 1;
+	}
+	for (int right = 0; right < S.size(); ++right) {
+		if (m.find(S[right]) != m.end()) {
+			--m[S[right]];
+			if (m[S[right]] >= 0) ++count;//可能在S中找到2个a，在T中只有一个a
+			while (count == T.size()) {
+				if (right - left + 1 < minLen) {
+					minLen = right - left + 1;
+					res = S.substr(left, minLen);
+				}
+				if (m.find(S[left]) != m.end()) {
+					++m[S[left]];
+					if (m[S[left]] > 0) --count;//将属于T的字符取出，需要更新count
+				}
+				++left;
+			}
+		}
+	}
+	return res;
 }
 int main() {
 	vector<int> arr = { 1,2,2 };
