@@ -2897,9 +2897,69 @@ string LeetCode76_minWindow_fromweb(string S, string T) {
 	}
 	return res;
 }
+int LeetCode91_recu(string s) {
+	if (s.empty())
+		return 1;
+	if (s[0] == '0')
+		return 0;
+	int num = 0;
+	int i = 0;
+	int count = 0;
+	while(i<s.length()) {
+		num = num * 10 + s[i] - '0';
+		if (num > 0 && num <= 26)
+			count+=LeetCode91_recu(s.substr(i+1, s.length() - i - 1));
+		if (num > 26)
+			break;
+		i++;
+	}
+	return count;
+}
+int LeetCode91_numDecodings(string s) {
+	if (s.empty())
+		return 0;
+	return LeetCode91_recu(s);
+}
+vector<int> LeetCode89_grayCode(int n)
+{
+	vector<int> result(1, 0);
+	for (int i = 0; i < n; i++) {
+		int curCount = result.size();
+		// push back all element in result in reverse order
+		while (curCount) {
+			curCount--;
+			int curNum = result[curCount];
+			curNum += (1 << i);
+			result.push_back(curNum);
+		}
+	}
+	return result;
+}
+TreeNode* LeetCode99_first = NULL;
+TreeNode* LeetCode99_second = NULL;
+TreeNode* LeetCode99_prev = new TreeNode(INT_MIN);
+void LeetCode99_inorder(TreeNode* root) {
+	if (!root) return;
+	LeetCode99_inorder(root->left);
+	if (LeetCode99_first == NULL && 
+		LeetCode99_prev->val > root->val) 
+		LeetCode99_first = LeetCode99_prev;
+	if (LeetCode99_first != NULL && 
+		LeetCode99_prev->val > root->val) 
+		LeetCode99_second = root;
+	//在中序遍历序列中，右节点的前一个是他的父节点
+	LeetCode99_prev = root;
+	LeetCode99_inorder(root->right);
+}
+void LeetCode99_recoverTree(TreeNode* root) {
+	//二叉搜索树的中序遍历是一个递增序列，被交换的两个数，一定是中序序列中，比它后面的数大的数
+	//故只要在中序遍历中，比较每一个数和它的前一个即可
+	LeetCode99_inorder(root);
+	int tmp= LeetCode99_first->val;
+	LeetCode99_first->val = LeetCode99_second->val;
+	LeetCode99_second->val=tmp;
+}
 int main() {
-	vector<int> arr = { 1,2,2 };
-	auto t = LeetCode76_minWindow("ADOBECODEBANC",
-		"ABC");
+	int t = LeetCode91_numDecodings("10");
 	int b = 1;
 }
