@@ -2959,7 +2959,118 @@ void LeetCode99_recoverTree(TreeNode* root) {
 	LeetCode99_first->val = LeetCode99_second->val;
 	LeetCode99_second->val=tmp;
 }
+struct TreeLinkNode {
+	int val;
+	TreeLinkNode *left, *right, *next;
+	TreeLinkNode(int x) : val(x), left(NULL), right(NULL), next(NULL) {}
+};
+void LeetCode116_dfs(TreeLinkNode*p, int lv, vector<vector<TreeLinkNode*>>& ret) {
+	if (!p)return;
+	if (lv >= ret.size())
+		ret.resize(ret.size() + 1);
+	ret[lv].push_back(p);
+	LeetCode116_dfs(p->left, lv + 1, ret);
+	LeetCode116_dfs(p->right, lv + 1, ret);
+}
+void LeetCode116_connect(TreeLinkNode *root) {
+	vector<vector<TreeLinkNode*>> ret;
+	LeetCode116_dfs(root, 0, ret);
+	for (int i = 0; i < ret.size(); i++) {
+		if (ret[i].empty())
+			continue;
+		for (int j = 0; j < ret[i].size()-1; j++) 
+			ret[i][j]->next = ret[i][j + 1];
+		ret[i][ret[i].size() - 1]->next = NULL;
+	}
+}
+void LeetCode116_connect_OCspace(TreeLinkNode *root) {
+	TreeLinkNode dummy(0), *t = &dummy;
+	while (root && root->left) {
+		t = t->next = root->left;   //connect every node in the same layer starting from dummy
+		t = t->next = root->right;
+		if (root->next) root = root->next;
+		else { root = dummy.next; t = &dummy; }  //go to the next layer
+	}
+}
+void LeetCode117_connect(TreeLinkNode *root) {
+	TreeLinkNode dummy(0), *t = &dummy;
+	while (root) {
+		if (root->left) t = t->next = root->left;  //connect every node in the same layer starting from dummy
+		if (root->right) t = t->next = root->right;
+		if (root->next) root = root->next;
+		else { root = dummy.next; dummy.next = NULL; t = &dummy; }  //go to the next layer
+	}
+}
+TreeLinkNode* LeetCode116test_MakeTree(vector<int>& arr) {
+	vector<TreeLinkNode*> p;
+	for (int i = 0; i < arr.size(); i++) {
+		p.push_back(new TreeLinkNode(arr[i]));
+		if (arr[i] != NULL && i != 0) {
+			if (i % 2 == 0)
+				p[(i - 1) / 2]->right = p[i];
+			else
+				p[(i - 1) / 2]->left = p[i];
+		}
+	}
+	return p[0];
+}
+vector<vector<int>> LeetCode118_generate(int numRows) {
+	vector<vector<int>> ret;
+	if (numRows == 0)
+		return ret;
+	ret.push_back(vector<int>(1, 1));
+	if (numRows == 1)
+		return ret;
+	ret.push_back(vector<int>(2, 1));
+	if (numRows == 2)
+		return ret;
+	vector<int> t;
+	for (int i = 2; i < numRows; i++) {
+		t.clear();
+		t.push_back(1);
+		for (int j = 1; j <i; j++)
+			t.push_back(ret[i - 1][j] + ret[i - 1][j - 1]);
+		t.push_back(1);
+		ret.push_back(t);
+	}
+	return ret;
+}
+vector<int> LeetCode119_getRow(int rowIndex) {
+	auto t=LeetCode118_generate(rowIndex+1);
+	return t[rowIndex];
+}
+int LeetCode120_minimumTotal(vector<vector<int>>& triangle) {
+	//自底向上动归，i行j列的点只能由，i+1行j列或j+1列到达
+	if (triangle.empty())
+		return 0;	
+	for (int i = triangle.size() - 1; i >= 0; i--) {
+		for (int j = 0; j < triangle[i].size()-1; j++)
+			triangle[i - 1][j] += min(triangle[i][j], triangle[i][j + 1]);
+	}
+	return triangle[0][0];
+}
+int LeetCode121_maxProfit(vector<int>& prices) {
+	int minprice = INT_MAX;
+	int maxprofit = 0;
+	for (int i = 0; i < prices.size(); i++) {
+		if (prices[i] < minprice)
+			minprice = prices[i];
+		else if (prices[i] - minprice > maxprofit)
+			maxprofit = prices[i] - minprice;
+	}
+	return maxprofit;
+}
+int LeetCode122_maxProfit(vector<int>& prices) {
+	if (prices.empty())
+		return 0;
+	int maxprofit = 0;
+	for (int i = 0; i < prices.size()-1; i++) 
+		if (prices[i + 1] > prices[i])
+			maxprofit += prices[i + 1] - prices[i];
+	return maxprofit;
+}
 int main() {
-	int t = LeetCode91_numDecodings("10");
+	vector<int> triangle = {7, 1, 5, 3, 6, 4};
+	auto t= LeetCode122_maxProfit(triangle);
 	int b = 1;
 }
