@@ -2320,7 +2320,7 @@ TreeNode* MakeTree(vector<int> arr) {
 	vector<TreeNode*> p;
 	for (int i = 0; i < arr.size(); i++) {
 		p.push_back(new TreeNode(arr[i]));
-		if (arr[i] != NULL && i!=0) {
+		if (arr[i] != -1/*NULL*/ && i!=0) {
 			if (i % 2 == 0)
 				p[(i - 1) / 2]->right = p[i];
 			else
@@ -3069,8 +3069,67 @@ int LeetCode122_maxProfit(vector<int>& prices) {
 			maxprofit += prices[i + 1] - prices[i];
 	return maxprofit;
 }
+bool LeetCode125_isPalindrome(string s) {
+	if (s.empty())
+		return true;
+	int i = 0, j = s.length() - 1;
+	while (i < j) {
+		while (i<j && !(s[i] >= 'a' && s[i] <= 'z' || s[i] >= 'A' && s[i] <= 'Z' || s[i] >= '0' && s[i] <= '9'))
+			++i;
+		while (i<j && !(s[j] >= 'a' && s[j] <= 'z' || s[j] >= 'A' && s[j] <= 'Z' || s[j] >= '0' && s[j] <= '9'))
+			--j;
+		if(tolower(s[i]) != tolower(s[j]))
+			return false;
+		++i;
+		--j;
+	}
+	return true;
+}
+void LeetCode129_dfs(TreeNode* root,vector<int>& nums,int num) {
+	num = num * 10 + root->val;
+	if (root->left)
+		LeetCode129_dfs(root->left, nums,num);
+	if (root->right)
+		LeetCode129_dfs(root->right, nums,num);
+	if (!root->left && !root->right)
+		nums.push_back(num);
+}
+int LeetCode129_sumNumbers(TreeNode* root) {
+	if (!root)
+		return 0;
+	vector<int> nums;
+	LeetCode129_dfs(root, nums, 0);
+	int count = 0;
+	for (int i = 0; i < nums.size(); ++i)
+		count += nums[i];
+	return count;
+}
+int LeetCode136_singleNumber(vector<int>& nums) {
+	int n = 0;
+	for (int i = 0; i < nums.size(); ++i)
+		n = n^nums[i];
+	return n;
+}
+int LeetCode134_canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
+	int accu = 0, sind = 0,count=0,diff;
+	for (int i = 0; i < gas.size(); ++i) {
+		diff = gas[i] - cost[i];
+		count += diff;
+		if (accu + diff >= 0)
+			accu += diff;
+		else {
+			sind = i + 1;
+			accu = 0;
+		}
+	}
+	if (count<0)
+		return -1;
+	else
+		return sind;
+}
 int main() {
-	vector<int> triangle = {7, 1, 5, 3, 6, 4};
-	auto t= LeetCode122_maxProfit(triangle);
+	vector<int>arr = {2,3,4},
+		cost = { 3, 4,3 };
+	auto t = LeetCode134_canCompleteCircuit(arr, cost);
 	int b = 1;
 }
