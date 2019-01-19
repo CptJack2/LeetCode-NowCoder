@@ -3127,9 +3127,79 @@ int LeetCode134_canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
 	else
 		return sind;
 }
+ListNode* LeetCode148_quicksort(ListNode* h, ListNode* tn) {
+	if (!h)
+		return NULL;
+	if (h->next == tn)
+		return h;
+	ListNode* p = h,
+		*dum=new ListNode(-1),//设置一个辅助链表头
+		*pp=dum,*ph=dum;
+	dum->next = h;
+	while (p!= tn) {
+		if (p->val >= h->val){//以头做基准
+			p = p->next;
+			pp = pp->next;
+		}
+		else {//将小于基准的，扔到前面
+			ph->next = p; 
+			ph = p;
+			pp->next = p->next;
+			p->next = h;
+			p = pp->next;
+		}
+	}
+	pp = dum->next;
+	delete dum;
+	//以原来的h为分割，递归排序两边区间
+	if (pp != h)//如果排序区间不为空才排序
+		p = LeetCode148_quicksort(pp, h);
+	else
+		p = pp;
+	if(h->next!=tn){
+		pp=LeetCode148_quicksort(h->next, tn);
+		h->next = pp;//将两个排序区间的尾头重新对接
+	}
+	return p;//返回此排序区间的头部
+}
+ListNode* LeetCode148_sortList(ListNode* head) {
+	return LeetCode148_quicksort(head,NULL);
+}
+void LeetCode147_insert(ListNode* a, ListNode* b,ListNode* bp) {
+	//ListNode* p = b->next;
+	bp->next = b->next;;
+	b->next = a->next;
+	a->next = b;
+}
+ListNode* LeetCode147_insertionSortList(ListNode* head) {
+	if (!head)
+		return NULL;
+	if (!head->next)
+		return head;
+	int count = 1;
+	ListNode* p = head->next,
+		*dum=new ListNode(-1),
+		*pp=dum;
+	dum->next = head;
+	while (p != NULL) {
+		ListNode*a = dum->next;
+		if (p->val < a->val) {
+			LeetCode147_insert(dum, p, pp);
+		}
+		for (int i = 1; i <= count; ++i) {
+			if (p->val >= a->val && p->val < a->next->val) {
+				LeetCode147_insert(a, p, pp);
+				break;
+				++count;
+			}
+			else 
+				a = a->next;
+		}
+	}
+}
 int main() {
-	vector<int>arr = {2,3,4},
-		cost = { 3, 4,3 };
-	auto t = LeetCode134_canCompleteCircuit(arr, cost);
+	vector<int>arr = { 4,2,1,3 };
+	ListNode* h = MakeList(arr);
+	
 	int b = 1;
 }
