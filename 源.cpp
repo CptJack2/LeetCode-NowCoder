@@ -1,7 +1,6 @@
 #include<iostream>
 #include<vector>
 #include<stack>
-using namespace std;
 #include<queue>
 #include<set>
 #include<map>
@@ -9,7 +8,10 @@ using namespace std;
 #include<string>
 #include<iterator>
 #include<list>
+#include<algorithm>
 #include<unordered_map>
+#include<deque>
+using namespace std;
 
 struct TreeNode {
 	int val;
@@ -2316,11 +2318,11 @@ bool LeetCode112_hasPathSum(TreeNode* root, int sum) {
 	else
 		return LeetCode112_recursive(root, sum);
 }
-TreeNode* MakeTree(vector<int> arr) {
+TreeNode* MakeTree(vector<int> arr,int nullval) {
 	vector<TreeNode*> p;
 	for (int i = 0; i < arr.size(); i++) {
 		p.push_back(new TreeNode(arr[i]));
-		if (arr[i] != -1/*NULL*/ && i!=0) {
+		if (arr[i] != nullval && i!=0) {
 			if (i % 2 == 0)
 				p[(i - 1) / 2]->right = p[i];
 			else
@@ -3165,9 +3167,10 @@ ListNode* LeetCode148_quicksort(ListNode* h, ListNode* tn) {
 ListNode* LeetCode148_sortList(ListNode* head) {
 	return LeetCode148_quicksort(head,NULL);
 }
+//将b插入到a后，bp是b原来的前一个
 void LeetCode147_insert(ListNode* a, ListNode* b,ListNode* bp) {
 	//ListNode* p = b->next;
-	bp->next = b->next;;
+	bp->next = b->next;
 	b->next = a->next;
 	a->next = b;
 }
@@ -3176,30 +3179,336 @@ ListNode* LeetCode147_insertionSortList(ListNode* head) {
 		return NULL;
 	if (!head->next)
 		return head;
-	int count = 1;
+	int count = 1;//已排序区间长度
 	ListNode* p = head->next,
 		*dum=new ListNode(-1),
-		*pp=dum;
+		*pp=head;
 	dum->next = head;
+	//p指向待插入节点，pp指向其前一个，a用于遍历有序区间
 	while (p != NULL) {
 		ListNode*a = dum->next;
+		//新增节点在有序区间头插入
 		if (p->val < a->val) {
 			LeetCode147_insert(dum, p, pp);
+			p = pp->next;
+			++count;
+			continue;
 		}
-		for (int i = 1; i <= count; ++i) {
+		//在区间中间插入
+		int i = 1;
+		for (; i < count; ++i) {
 			if (p->val >= a->val && p->val < a->next->val) {
 				LeetCode147_insert(a, p, pp);
-				break;
+				p = pp->next;
 				++count;
+				break;
 			}
 			else 
 				a = a->next;
 		}
+		//在区间末尾插入
+		if (i == count) {
+			pp = pp->next;
+			p = p->next;
+			++count;
+		}
+	}
+	return dum->next;
+}
+struct RandomListNode {
+	int label;
+	RandomListNode *next, *random;
+	RandomListNode(int x) : label(x), next(NULL), random(NULL) {}
+};
+RandomListNode *LeetCode138_copyRandomList(RandomListNode *head) {
+	map<RandomListNode*, RandomListNode*> m;
+	if (!head)return nullptr;
+	RandomListNode*p = head,*nh,*pp;
+	//新建头
+	nh = new RandomListNode(head->label);
+	if(head->random){
+		nh->random=new RandomListNode(head->random->label);
+		m[head->random] = nh->random;}
+	pp = nh;
+	while (p->next) {
+		pp->next = new RandomListNode(p->next->label);
+		p = p->next;
+		pp = pp->next;
+		if (!p->random)continue;
+		if (m.find(p->random) != m.end()) {
+			pp->random = m[p->random];
+		}
+		else {
+			pp->random = new RandomListNode(p->random->label);
+			m[p->random] = pp->random;
+		}
+	}
+	return nh;
+}
+bool LeetCode139_recur(string s, vector<string>& wordDict) {
+	string t1=s.substr(0,1),t2=t1;
+	t2[0] = (char)t2[0] + 1;
+	for (auto i = lower_bound(wordDict.begin(), wordDict.end(), t1); i != lower_bound(wordDict.begin(), wordDict.end(), t2); ++i) {
+		if (s.length() >= i->length() && s.substr(0, i->length()) == *i) {
+			if (s.length() == i->length())return true;
+			else if (LeetCode139_recur(s.substr(i->length(), s.length() - i->length()), wordDict)) return true;
+		}
+	}
+	return false;
+}
+bool LeetCode139_wordBreak(string s, vector<string>& wordDict) {
+	if (s.empty())return true;
+	sort(wordDict.begin(), wordDict.end());
+	return LeetCode139_recur(s, wordDict);
+}
+bool LeetCode139_wordBreak_dp(string s, vector<string>& wordDict) {
+	vector<bool> memory(s.length() + 1);
+	memory[0] = true;
+	for (int i = 0; i < s.length(); i++) {
+		if (!memory[i]) {
+			continue;
+		}
+		for (string word : wordDict) {
+			int end = i + word.length();
+			if (end <= s.length() && s.substr(i, end-i)==word) {
+				memory[end] = true;
+			}
+		}
+	}
+	return memory[s.length()];
+}
+//LeetCode146
+class LRUCache {
+public:
+	LRUCache(int capacity) {
+		this->capacity = capacity;
+	}
+	int get(int key) {
+		if (m.find(key) != m.end()){
+			++count[key];
+			history.push_back(key);
+			return m[key];}
+		else return -1;
+	}
+	void put(int key, int value) {
+		if (m.find(key) != m.end()) {
+			history.push_back(key);
+			m[key] = value;
+			++count[key];
+		}
+		else {//新key
+			//有空余
+			if (capacity > 0) {
+				--capacity;
+				m[key] = value;
+				count[key]=1;
+				history.push_back(key);
+			}
+			else {//无空余，按访问历史更新引用计数
+				while (history.size() > 1 && count[history.front()]>1) {
+					--count[history.front()];
+					history.pop_front();
+				}
+				//删掉最少访问的
+				m.erase(history.front());
+				count.erase(history.front());
+				history.pop_front();
+				m[key] = value;
+				count[key] = 1;
+				history.push_back(key);
+			}
+		}
+	}
+private:
+	deque<int> history;
+	unordered_map<int,int> m;
+	unordered_map<int,int> count;
+	int capacity;
+};
+//LeetCode155
+class MinStack {
+public:
+	MinStack():size(0),m(2147483647) {
+
+	}
+	void push(int x) {
+		arr[size++] = x;
+		if (x < m)m = x;
+	}
+	void pop() {
+		--size;
+		if (arr[size] == m) {
+			if (size != 0)
+				m = arr[0];
+			else
+				m = 2147483647;
+			for (int i = 1; i < size; ++i)if (arr[i] < m)m = arr[i];
+		}
+	}
+	int top() {
+		return arr[size-1];
+	}
+	int getMin() {
+		return m;
+	}
+private:
+	int arr[102400];
+	int size;
+	int m;
+};
+ListNode* LeetCode160_getIntersectionNode(ListNode *headA, ListNode *headB) {
+	ListNode *pa = headA, *pb = headB;
+	bool a = false, b = false;
+	if (!pa || !pb)return nullptr;
+	while (pa != pb) {
+		pa = pa->next;
+		if (!pa)
+			if (a) return nullptr; 
+			else{
+				pa = headB; a = true;}
+		pb = pb->next;
+		if (!pb) 
+			if (b) return nullptr;
+			else {
+				pb = headA; b = true;}
+	}
+	return pa;
+}
+vector<int> LeetCode167_twoSum(vector<int>& numbers, int target) {
+	vector<int> ret;
+	for (int i = 0; i < numbers.size(); ++i) {
+		int t = target - numbers[i];
+		if (binary_search(numbers.begin() + i + 1, numbers.end(), t)) {
+			int j = lower_bound(numbers.begin() + i + 1, numbers.end(), t) - numbers.begin();
+			ret.push_back(i+1); ret.push_back(j+1);
+			return ret;
+		}
+	}
+	return ret;
+}
+string LeetCode168_convertToTitle(int n) {
+	string ret;
+	while (n != 0) {
+		if (n % 26)
+			{ret.insert(ret.begin(), n % 26 - 1 + 'A'); n = n / 26;}
+		else
+		{
+			ret.insert(ret.begin(), 'Z'); n = (n - 1) / 26;}
+		
+	}
+	return ret;
+}
+int LeetCode171_titleToNumber(string s) {
+	int ret = 0;
+	for (int i = 0; i < s.size(); ++i) 
+		ret+=(s[i]-'A'+1)*pow(26, s.size() - i - 1);
+	return ret;
+}
+int LeetCode172_trailingZeroes(int n) {
+	/*要求末尾有多少个零，则该数应为x*10k 的形式等于x*（2k *5k）
+	也就是求该数分解质因子后有几个5就行，
+	：如1*2*3*4*5=1*2*3*2*2*5（里面有一个5）所以结果为1个0*/
+	int sum = 0;
+	while (n>0) {
+		sum += n / 5;
+		n /= 5;
+	}
+	return sum;
+}
+void LeetCode189_rotate(vector<int>& nums, int k) {
+	for (int i = 0; i < k; ++i) {
+		nums.insert(nums.begin(), nums.back());
+		nums.pop_back();
 	}
 }
+uint32_t LeetCode190_reverseBits(uint32_t n) {
+	uint32_t mask = 0x80000000,ret=0;
+	for (int i = 1; i <= 16; ++i) {
+		ret |= (mask&n) >> (32 - 2*i+1);
+		mask >>= 1;
+	}
+	for (int i = 1; i <= 16; ++i) {
+		ret |= (mask&n) << (2*i-1);
+		mask >>= 1;
+	}
+	return ret;
+}
+int LeetCode115_numDistinct(string s, string t) {
+	vector<int> stack1;
+	int count = 0;
+	int i = 0;
+	while (!(stack1.empty() && i >= s.length())) {
+		if (i >= s.length()) {
+			i = stack1.back() + 1;
+			stack1.pop_back();
+			continue;
+		}
+		if (t[stack1.size()] == s[i]){
+			stack1.push_back(i);
+			if(stack1.size()==t.length()){
+				++count;
+				i = stack1.back();
+				stack1.pop_back();
+			}}
+		++i;
+	}
+	return count;
+}
+int LeetCode115_numDistinct_dp(string s, string t) {
+	const int szS = s.size();
+	const int szT = t.size();
+	if (szS == 0)    return 0;
+	if (szT == 0)    return 1;
+	vector<long long> dp(szT + 1, 0);
+	dp[0] = 1;
+	for (int row = 0; row<szS; ++row){
+		for (int col = szT - 1; col >= 0; --col){
+			if (s[row] == t[col])  
+				dp[col + 1] += dp[col];
+			/*dp[0-s,0,t]
+			dp[0,*]=0,dp[1,*]=1
+			if(s[i]==t[j]) dp[i,j]=dp[i-1,j]+dp[i-1,j-1]
+			else dp[i,j]=dp[i-1,j]
+			*/
+		}}
+	return dp[szT];
+}
+int LeetCode124_maxToLeaf(TreeNode* root) {
+	//if (!root)return (-2147483647 - 1)/*INT_MIN*/;
+	if (!root->left && !root->right)return root->val;
+	if (root->left && !root->right)return LeetCode124_maxToLeaf(root->left);
+	if (!root->left && root->right)return LeetCode124_maxToLeaf(root->right);
+	return max(LeetCode124_maxToLeaf(root->left), LeetCode124_maxToLeaf(root->right))+root->val;
+}
+int LeetCode124_maxPathSum(TreeNode* root) {
+	if (!root)return (-2147483647 - 1)/*INT_MIN*/;
+	if (!root->left && !root->right)return root->val;
+	if (root->left && !root->right)return max(root->val,max(LeetCode124_maxPathSum(root->left),
+		LeetCode124_maxToLeaf(root->left)+root->val));
+	if (!root->left && root->right)return max(root->val,max(LeetCode124_maxPathSum(root->right),
+		LeetCode124_maxToLeaf(root->right) + root->val));
+	return max(root->val,max(LeetCode124_maxToLeaf(root->left) + LeetCode124_maxToLeaf(root->right) + root->val
+		,max(LeetCode124_maxPathSum(root->left)
+			,LeetCode124_maxPathSum(root->right))));
+}
+int LeetCode124_max = INT_MIN;
+int LeetCode124_maxPathSum_2(TreeNode* root) {
+	LeetCode124_helper(root);
+	return LeetCode124_max;
+}
+
+int LeetCode124_helper(TreeNode* root) {
+	if (!root)
+		return 0;
+	int left = LeetCode124_helper(root->left);
+	int right = LeetCode124_helper(root->right);
+	LeetCode124_max = max(LeetCode124_max, root->val + left + right);
+	int current = root->val + max(left, right);
+	return (current > 0) ? current : 0;
+}
 int main() {
-	vector<int>arr = { 4,2,1,3 };
-	ListNode* h = MakeList(arr);
 	
+	//TreeNode* h = MakeTree(arr,NULL);
+	int t = LeetCode124_maxPathSum(h);
 	int b = 1;
 }
