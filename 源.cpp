@@ -11,6 +11,8 @@
 #include<algorithm>
 #include<unordered_map>
 #include<deque>
+#include<unordered_map>
+#include<unordered_set>
 using namespace std;
 
 struct TreeNode {
@@ -3491,12 +3493,7 @@ int LeetCode124_maxPathSum(TreeNode* root) {
 		,max(LeetCode124_maxPathSum(root->left)
 			,LeetCode124_maxPathSum(root->right))));
 }
-int LeetCode124_max = INT_MIN;
-int LeetCode124_maxPathSum_2(TreeNode* root) {
-	LeetCode124_helper(root);
-	return LeetCode124_max;
-}
-
+int LeetCode124_max = (-2147483647 - 1);
 int LeetCode124_helper(TreeNode* root) {
 	if (!root)
 		return 0;
@@ -3506,9 +3503,158 @@ int LeetCode124_helper(TreeNode* root) {
 	int current = root->val + max(left, right);
 	return (current > 0) ? current : 0;
 }
+int LeetCode124_maxPathSum_2(TreeNode* root) {
+	LeetCode124_helper(root);
+	return LeetCode124_max;
+}
+bool LeetCode127_oneletterdiff(const string& w1, const string& w2) {
+	if (w1.length() != w2.length())return false;
+	int count = 0;
+	for (int i = 0; i < w1.length(); ++i)
+		if (w1[i] != w2[i])++count;
+	return count == 1;
+}
+int LeetCode127_ladderLength(string beginWord, string endWord, vector<string>& wordList) {
+	if (find(wordList.begin(), wordList.end(), endWord) == wordList.end())return 0;
+	wordList.push_back(beginWord);
+	vector<vector<bool>> graph(wordList.size(), vector<bool>(wordList.size(), 0));
+	for (int i = 0; i < graph.size(); ++i)
+		for (int j = i; j < graph.size(); ++j) 
+			if (i == j || LeetCode127_oneletterdiff(wordList[i], wordList[j])){
+				graph[i][j] = true; graph[j][i] = true;}
+	set<int> viewed;
+	deque<int> queue;
+	viewed.insert(wordList.size() - 1);
+	queue.push_back(wordList.size() - 1);
+	int count = 1;
+	while (!queue.empty()) {
+		int t = queue.size();
+		for (int j = 0; j < t;++j){
+			for (int i = 0; i < wordList.size(); ++i)
+				if (graph[queue.front()][i] && viewed.find(i) == viewed.end()){
+					if (wordList[i] == endWord) {
+						return ++count;
+					}
+					queue.push_back(i);
+					viewed.insert(i);}
+			queue.pop_front();
+		}
+		++count;
+	}
+	return 0;
+}
+vector<vector<string>> LeetCode126_findLadders(string beginWord, string endWord, vector<string>& wordList) {
+	vector<vector<string>> ret;
+	if (find(wordList.begin(), wordList.end(), endWord) == wordList.end())return ret;
+	auto t = find(wordList.begin(), wordList.end(), beginWord);
+	if (t != wordList.end())wordList.erase(t);
+	wordList.push_back(beginWord);
+	vector<vector<bool>> graph(wordList.size(), vector<bool>(wordList.size(), 0));
+	for (int i = 0; i < graph.size(); ++i)
+		for (int j = i+1; j < graph.size(); ++j)
+			if (LeetCode127_oneletterdiff(wordList[i], wordList[j])) {
+				graph[i][j] = true; graph[j][i] = true;
+			}
+	//set<int> viewed;
+	vector<pair<int,int>> queue;
+	//viewed.insert(wordList.size() - 1);
+	queue.push_back(pair<int,int>(-1,wordList.size() - 1));
+	int count = 1;
+	int start = 0,end=1;
+	bool found = false;
+	while (1) {
+		if (found) {
+			for (int j = start; j < end; ++j) {
+				vector<string> tmp;
+				if (wordList[queue[j].second] == endWord) {
+					int i = j;
+					while (i != -1) {
+						tmp.push_back(wordList[queue[i].second]);
+						i = queue[i].first;}
+					reverse(tmp.begin(), tmp.end());
+					ret.push_back(tmp);
+				}
+			}
+			break;
+		}
+		if (/*viewed.size() >= wordList.size() ||*/ start >= end)
+			break;
+		for (int j = start; j < end; ++j) {
+			for (int i = 0; i < wordList.size(); ++i)
+				if (graph[queue[j].second][i] /*&& (viewed.find(i) == viewed.end()|| wordList[i] == endWord)*/) {
+					if (wordList[i] == endWord)
+						found = true;
+					queue.push_back(pair<int, int>(j, i));
+					//viewed.insert(i);
+				}
+		}
+		start = end;
+		end = queue.size();
+		++count;
+	}
+	return ret;
+}
+void LeetCode126_findChildren(string word, unordered_set<string>& next, unordered_set<string>& dict, unordered_map<string, vector<string>>& children) {
+	string parent = word;
+	for (int i = 0; i < word.size(); i++) {
+		char t = word[i];
+		for (int j = 0; j < 26; j++) {
+			word[i] = 'a' + j;
+			if (dict.find(word) != dict.end()) {
+				next.insert(word);
+				children[parent].push_back(word);
+			}
+		}
+		word[i] = t;
+	}
+}
+void LeetCode126_genLadders(string beginWord, string endWord, unordered_map<string, vector<string>>& children, vector<string>& ladder, vector<vector<string>>& ladders) {
+	if (beginWord == endWord) {
+		ladders.push_back(ladder);
+	}
+	else {
+		for (string child : children[beginWord]) {
+			ladder.push_back(child);
+			LeetCode126_genLadders(child, endWord, children, ladder, ladders);
+			ladder.pop_back();
+		}
+	}
+}
+vector<vector<string>> LeetCode126_findLadders_BfsDfs(string beginWord, string endWord, vector<string>& wordList) {
+	unordered_set<string> dict(wordList.begin(), wordList.end()), current, next;
+	if (dict.find(endWord) == dict.end()) {
+		return{};
+	}
+	unordered_map<string, vector<string>> children;
+	vector<vector<string>> ladders;
+	vector<string> ladder;
+	current.insert(beginWord);
+	ladder.push_back(beginWord);
+	while (true) {
+		for (string word : current) {
+			dict.erase(word);
+		}
+		for (string word : current) {
+			LeetCode126_findChildren(word, next, dict, children);
+		}
+		if (next.empty()) {
+			break;
+		}
+		if (next.find(endWord) != next.end()) {
+			LeetCode126_genLadders(beginWord, endWord, children, ladder, ladders);
+			break;
+		}
+		current.clear();
+		swap(current, next);
+	}
+	return ladders;
+}
 int main() {
-	
-	//TreeNode* h = MakeTree(arr,NULL);
-	int t = LeetCode124_maxPathSum(h);
+	/*vector<string> w = { "ted","tex","red","tax","tad","den","rex","pee" };
+	auto t = LeetCode126_findLadders_BfsDfs("red","tax", w);*/
+	/*vector<string> w = {"hot","dog"};
+	auto t = LeetCode126_findLadders("hot", "dog", w);*/
+	vector<string> w = { "hot", "dot", "dog", "lot", "log", "cog" };
+	auto t = LeetCode126_findLadders_BfsDfs("hit", "cog", w); 
 	int b = 1;
 }
