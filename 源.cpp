@@ -3649,12 +3649,57 @@ vector<vector<string>> LeetCode126_findLadders_BfsDfs(string beginWord, string e
 	}
 	return ladders;
 }
+class Node {
+public:
+	int val;
+	vector<Node*> neighbors;
+	Node() {}
+	Node(int _val, vector<Node*> _neighbors) {
+		val = _val;
+		neighbors = _neighbors;
+	}
+};
+Node* LeetCode133_cloneGraph(Node* node) {
+	map<Node*, Node*> m;
+	if (!node)return nullptr;
+	deque<Node*> que;
+	que.push_back(node);
+	while (!que.empty()) {
+		Node*t = que.front();
+		Node* nt;
+		if (m.find(t) == m.end()) {
+			nt = new Node();
+			m[t] = nt;
+			nt->val = t->val;
+		}
+		else
+			nt = m[t];
+		for (Node* p : t->neighbors) {
+			Node* np;
+			if (m.find(p) == m.end()) {
+				np = new Node();
+				m[p] = np;
+				np->val = p->val;
+				que.push_back(p);
+			}
+			else
+				np = m[p];
+			nt->neighbors.push_back(np);
+		}
+		que.pop_front();
+	}
+	return m[node];
+}
+Node* MakeGraph() {
+	Node* n1 = new Node();Node* n2 = new Node();Node* n3 = new Node();Node* n4 = new Node();
+	n1->val = 1;n2->val = 2;n3->val = 3;n4->val = 4;
+	n1->neighbors.push_back(n2);n1->neighbors.push_back(n4);
+	n2->neighbors.push_back(n1);n2->neighbors.push_back(n3);
+	n3->neighbors.push_back(n2);n3->neighbors.push_back(n4);
+	n4->neighbors.push_back(n1);n4->neighbors.push_back(n3);
+	return n1;
+}
 int main() {
-	/*vector<string> w = { "ted","tex","red","tax","tad","den","rex","pee" };
-	auto t = LeetCode126_findLadders_BfsDfs("red","tax", w);*/
-	/*vector<string> w = {"hot","dog"};
-	auto t = LeetCode126_findLadders("hot", "dog", w);*/
-	vector<string> w = { "hot", "dot", "dog", "lot", "log", "cog" };
-	auto t = LeetCode126_findLadders_BfsDfs("hit", "cog", w); 
+	Node * t = LeetCode133_cloneGraph(MakeGraph());
 	int b = 1;
 }
