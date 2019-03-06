@@ -3690,16 +3690,133 @@ Node* LeetCode133_cloneGraph(Node* node) {
 	}
 	return m[node];
 }
-Node* MakeGraph() {
-	Node* n1 = new Node();Node* n2 = new Node();Node* n3 = new Node();Node* n4 = new Node();
-	n1->val = 1;n2->val = 2;n3->val = 3;n4->val = 4;
-	n1->neighbors.push_back(n2);n1->neighbors.push_back(n4);
-	n2->neighbors.push_back(n1);n2->neighbors.push_back(n3);
-	n3->neighbors.push_back(n2);n3->neighbors.push_back(n4);
-	n4->neighbors.push_back(n1);n4->neighbors.push_back(n3);
-	return n1;
+void LeetCode130_solve(vector<vector<char>>& board) {
+	if (board.empty())return;
+	deque<pair<int, int>> que;
+	set<pair<int, int>> set1;
+	for (int i = 0;i < board.size();++i) {
+		if (board[i][0] == 'O') {
+			que.push_back(pair<int, int>(i, 0));
+			set1.insert(pair<int, int>(i, 0));
+		}
+		if (board[i][board[0].size() - 1] == 'O') {
+			que.push_back(pair<int, int>(i, board[0].size() - 1));
+			set1.insert(pair<int, int>(i, board[0].size() - 1));
+		}
+	}
+	for (int i = 1;i < (int)board[0].size()-1;++i) {
+		if (board[0][i] == 'O') {
+			que.push_back(pair<int, int>(0, i));
+			set1.insert(pair<int, int>(0, i));
+		}
+		if (board[board.size() - 1][i] == 'O') {
+			que.push_back(pair<int, int>(board.size() - 1, i));
+			set1.insert(pair<int, int>(board.size() - 1, i));
+		}
+	}
+	int m = board.size(), n = board[0].size();
+	while (!que.empty()) {
+		pair<int, int> t = que.front();
+		if (t.first > 0 && board[t.first - 1][t.second] == 'O'&& set1.find(pair<int, int>(t.first - 1, t.second)) == set1.end()) {
+			set1.insert(pair<int, int>(t.first - 1, t.second));
+			que.push_back(pair<int, int>(t.first - 1, t.second));
+		}
+		if (t.first < m-1 && board[t.first + 1][t.second] == 'O'&& set1.find(pair<int, int>(t.first + 1, t.second)) == set1.end()) {
+			set1.insert(pair<int, int>(t.first + 1, t.second));
+			que.push_back(pair<int, int>(t.first + 1, t.second));
+		}
+		if (t.second > 0 && board[t.first ][t.second - 1] == 'O'&& set1.find(pair<int, int>(t.first, t.second - 1)) == set1.end()) {
+			set1.insert(pair<int, int>(t.first , t.second - 1));
+			que.push_back(pair<int, int>(t.first , t.second - 1));
+		}
+		if (t.second < n-1 && board[t.first][t.second+1] == 'O'&& set1.find(pair<int, int>(t.first, t.second + 1))==set1.end()) {
+			set1.insert(pair<int, int>(t.first , t.second+1));
+			que.push_back(pair<int, int>(t.first , t.second+1));
+		}
+		que.pop_front();
+	}
+	for (int i = 0;i < m;++i)
+		for (int j = 0;j < n;++j) {
+			if (board[i][j] == 'O'&& set1.find(pair<int, int>(i, j) )== set1.end())
+				board[i][j] = 'X';
+		}
+}
+int LeetCode128_longestConsecutive(vector<int>& nums) {
+	unordered_set<int> set1;
+	for (int num : nums)set1.insert(num);
+	int len = 0;
+	for (int num : nums) {
+		int l = 1;
+		int cn = num;
+		while (set1.find(cn + 1) != set1.end()) {
+			++l;
+			++cn;
+		}
+		len = max(l, len);
+	}
+	return len;
+}
+bool LeetCode131_isPalindrome(const string &s, int i, int j) {
+	while (i < j) {
+		if (s[i] != s[j])return false;
+		++i;
+		--j;
+	}
+	return true;
+}
+int LeetCode131_findNextAvailable(const string &s, const pair<int, int>& pa) {
+	int j = pa.second + 1;
+	for (;j < s.size();++j)
+		if (LeetCode131_isPalindrome(s, pa.first, j))return j;
+	return -1;
+}
+vector<vector<string>> LeetCode131_partition(string s) {
+	vector<pair<int, int>> stack1;
+	vector<vector<string>> ret;
+	int l;
+	stack1.push_back(pair<int, int>(0, 0));
+	while (!stack1.empty()){
+		//到达串尾，输出结果
+		if (stack1.back().second == s.size() - 1) {
+			vector<string> tmp;
+			for (auto t : stack1) 
+				tmp.push_back(s.substr(t.first, t.second - t.first + 1));
+			ret.push_back(tmp);
+			//弹出栈并搜索下一个可用分割
+			while(1){
+				stack1.pop_back();
+				if (stack1.empty())return ret;
+				int j = LeetCode131_findNextAvailable(s,stack1.back());
+				if (j != -1) {
+					stack1.back().second = j;
+					break;
+				}
+			}
+		}
+		pair<int, int> t(stack1.back().second + 1, stack1.back().second);
+		int j = LeetCode131_findNextAvailable(s, t);
+		if (j != -1) {
+			t.second = j;
+			stack1.push_back(t);
+		}
+	}
+	return ret;
+}
+int LeetCode132_CutStr(const string& s) {
+	for (int i = 1;i < s.size();++i)
+		if (LeetCode131_isPalindrome(s, 0, i) && LeetCode131_isPalindrome(s, i + 1, s.size() - 1))
+			return i;
+	return -1;
+}
+int LeetCode132_minCut(string s) {
+	int curPars = 2;
+	int donePars = 0;
+	vector<int> Pars;
+	while (donePars < curPars) {
+		int j = Pars.back() + 1;
+	}
 }
 int main() {
-	Node * t = LeetCode133_cloneGraph(MakeGraph());
+	auto t = LeetCode131_partition("aab");
 	int b = 1;
 }
