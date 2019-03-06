@@ -3802,21 +3802,57 @@ vector<vector<string>> LeetCode131_partition(string s) {
 	}
 	return ret;
 }
-int LeetCode132_CutStr(const string& s) {
-	for (int i = 1;i < s.size();++i)
-		if (LeetCode131_isPalindrome(s, 0, i) && LeetCode131_isPalindrome(s, i + 1, s.size() - 1))
-			return i;
+int LeetCode132_minCut(string s) {
+	if (s.empty())return 0;
+	int current = 1;
+	deque<int> curque,nextque;
+	curque.push_back(-1);
+	while (!curque.empty()) {
+		int t = curque.front() + 1;
+		for (int i = t;i < s.size();++i)
+			if (LeetCode131_isPalindrome(s, t, i)) {
+				if (i == s.size() - 1)return current - 1;
+				nextque.push_back(i);
+			}
+		curque.pop_front();
+		if (curque.empty()) {
+			swap(curque, nextque);
+			++current;
+		}
+	}
 	return -1;
 }
-int LeetCode132_minCut(string s) {
-	int curPars = 2;
-	int donePars = 0;
-	vector<int> Pars;
-	while (donePars < curPars) {
-		int j = Pars.back() + 1;
+int LeetCode132_minCut_dp(string s) {
+	int n = s.length();
+	vector<vector<bool>> dp(n,vector<bool>(n,false));
+	vector<int> cut(n,n-1);
+	for (int j = 0; j < n; j++) {
+		for (int i = 0; i <= j; i++) {
+			if (s[i] == s[j] && (j - i <= 1 || dp[i + 1][j - 1])) {
+				dp[i][j] = true;
+				if (i == 0)
+					cut[j] = 0; //no cut needed
+				else
+					cut[j] = min(cut[j], cut[i - 1] + 1);
+			}
+		}
 	}
+	return cut[n - 1];
+}
+int LeetCode137_singleNumber(vector<int>& nums) {
+	int bitSum[32] = { 0 };
+	int n = nums.size();
+	int result = 0;
+	for (int i = 0; i < 32; i++) {
+		for (int j = 0; j < n; j++) {
+			bitSum[i] += (nums[j] >> i) & 1;
+		}
+		bitSum[i] %= 3;
+		result |= bitSum[i] << i;
+	}
+	return result;
 }
 int main() {
-	auto t = LeetCode131_partition("aab");
+	auto t =LeetCode132_minCut_dp("abbab");
 	int b = 1;
 }
