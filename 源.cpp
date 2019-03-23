@@ -3852,7 +3852,106 @@ int LeetCode137_singleNumber(vector<int>& nums) {
 	}
 	return result;
 }
+struct Point {
+	int x;
+	int y;
+	Point() : x(0), y(0) {}
+	Point(int a, int b) : x(a), y(b) {}
+	
+};
+int gcd(int a, int b) {
+	return (b == 0) ? a : gcd(b, a % b);
+}
+int LeetCode149_maxPoints(vector<Point>& points) {
+	int res = 0;
+	for (int i = 0; i < points.size(); ++i) {
+		map<pair<int, int>, int> m;
+		int duplicate = 1;
+		for (int j = i + 1; j < points.size(); ++j) {
+			if (points[i].x == points[j].x && points[i].y == points[j].y) {
+				++duplicate; continue;
+			}
+			int dx = points[j].x - points[i].x;
+			int dy = points[j].y - points[i].y;
+			int d = gcd(dx, dy);
+			++m[{dx / d, dy / d}];
+		}
+		res = max(res, duplicate);
+		for (auto it = m.begin(); it != m.end(); ++it) {
+			res = max(res, it->second + duplicate);
+		}
+	}
+	return res;
+}
+string LeetCode151_reverseWords(string s) {
+	string word;
+	vector<string> words;
+	s.push_back(' ');
+	for (char c : s) {
+		if (c == ' ') {
+			if (!word.empty()) {
+				words.push_back(word);
+				word.clear();
+			}
+			continue;
+		}
+		else
+			word.push_back(c);
+	}
+	if (words.empty())return "";
+	string ret;
+	for (auto it = words.rbegin(); it != words.rend(); ++it)
+		ret = ret + *it + " ";
+	ret.erase(ret.size()-1);
+	return ret;
+}
+int LeetCode152_maxProduct(vector<int>& nums) {
+	if (nums.empty())return 0;
+	if (nums.size() == 1)return nums[0];
+	vector<int> mpos(nums.size(),0);
+	vector<int> mneg(nums.size(),0);
+	if (nums[0] >= 0)mpos[0] = nums[0];
+	else mneg[0] = nums[0];
+	int ret = INT_MIN;
+	for (int i = 1; i < nums.size(); ++i) {
+		if (nums[i] > 0) {
+			mpos[i] = mpos[i - 1]==0? nums[i]: mpos[i - 1]*nums[i];
+			mneg[i] = mneg[i - 1] * nums[i];
+		}
+		else if (nums[i] < 0) {
+			mpos[i] = mneg[i - 1] * nums[i];
+			mneg[i] = mpos[i - 1]==0?nums[i]:mpos[i-1] * nums[i];
+		}
+	}
+	for (int i = 0; i < nums.size(); ++i)
+		ret = max(ret, mpos[i]);
+	return ret;
+}
+int LeetCode153_findMin(vector<int>& nums) {
+	int i = 0, j = nums.size() - 1,mid=0;
+	while (i < j) {
+		if (j == i + 1) {
+			mid = nums[i] < nums[j] ? i : j;
+			break;
+		}
+		mid = (i + j) / 2;
+		if (nums[i] < nums[j]) {
+			if (nums[i] < nums[mid])
+				j = mid;
+			else
+				i = mid;
+		}
+		else {
+			if (nums[i] < nums[mid]) 
+				i = mid;
+			else
+				j = mid;
+		}
+	}
+	return nums[mid];
+}
 int main() {
-	auto t =LeetCode132_minCut_dp("abbab");
+	vector<int>arr = { 8,1,2,3,4,5 };
+	int t = LeetCode153_findMin(arr);
 	int b = 1;
 }
